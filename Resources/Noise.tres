@@ -1,0 +1,12 @@
+[gd_resource type="NoiseTexture2D" load_steps=2 format=3 uid="uid://cug6iprep5rk2"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_aph2d"]
+noise_type = 5
+frequency = 0.2
+fractal_type = 0
+
+[resource]
+generate_mipmaps = false
+seamless = true
+seamless_blend_skirt = 0.05
+noise = SubResource("FastNoiseLite_aph2d")

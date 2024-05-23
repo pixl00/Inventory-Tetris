@@ -1,16 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://ddvl8ifh1ftw7"]
+[gd_scene load_steps=4 format=3 uid="uid://ddvl8ifh1ftw7"]
 
 [ext_resource type="Script" path="res://Scripts/Inventory.cs" id="1_nosul"]
+[ext_resource type="Texture2D" uid="uid://b4xyvfv8g545" path="res://Resources/KenneyAssets/InventoryTile.png" id="2_4fg4c"]
+[ext_resource type="Script" path="res://Scripts/InventoryTile.cs" id="3_cjphq"]
 
 [node name="Inventory" type="Control" node_paths=PackedStringArray("Grid")]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 212.0
-offset_bottom = 212.0
+offset_right = 415.0
+offset_bottom = 466.0
 script = ExtResource("1_nosul")
-GridSize = Vector2i(4, 4)
-TilePadding = 4
-GridPadding = 4
+GridSize = Vector2i(8, 9)
 Grid = NodePath("Grid")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -24,10 +24,370 @@ color = Color(0.165656, 0.165656, 0.165656, 1)
 
 [node name="Grid" type="GridContainer" parent="."]
 layout_mode = 0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 208.0
-offset_bottom = 208.0
-theme_override_constants/h_separation = 4
-theme_override_constants/v_separation = 4
-columns = 4
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 410.0
+offset_bottom = 461.0
+theme_override_constants/h_separation = 3
+theme_override_constants/v_separation = 3
+columns = 8
+
+[node name="00" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="01" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="02" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="03" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="04" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="05" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="06" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="07" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="08" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="10" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="11" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="12" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="13" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="14" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="15" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="16" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="17" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="18" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="20" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="21" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="22" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="23" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="24" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="25" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="26" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="27" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="28" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="30" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="31" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="32" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="33" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="34" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="35" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="36" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="37" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="38" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="40" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="41" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="42" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="43" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="44" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="45" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="46" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="47" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="48" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="50" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="51" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="52" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="53" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="54" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="55" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="56" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="57" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="58" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="60" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="61" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="62" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="63" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="64" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="65" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="66" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="67" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="68" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="70" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="71" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="72" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="73" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="74" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="75" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="76" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="77" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")
+
+[node name="78" type="TextureRect" parent="Grid"]
+layout_mode = 2
+texture = ExtResource("2_4fg4c")
+script = ExtResource("3_cjphq")

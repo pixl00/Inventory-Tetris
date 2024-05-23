@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="InventoryStyle" load_steps=4 format=3 uid="uid://71ud2gswpbqn"]
+
+[ext_resource type="Texture2D" uid="uid://qgaj54wnesxy" path="res://Resources/KenneyAssets/ItemBorder.png" id="1_hqdh4"]
+[ext_resource type="Texture2D" uid="uid://b4xyvfv8g545" path="res://Resources/KenneyAssets/InventoryTile.png" id="2_yau2l"]
+[ext_resource type="Script" path="res://Scripts/CustomResources/InventoryStyle.cs" id="3_1k1l8"]
+
+[resource]
+script = ExtResource("3_1k1l8")
+TileTexture = ExtResource("2_yau2l")
+ItemBorder = ExtResource("1_hqdh4")
+TilePadding = 3
+GridPadding = 5
