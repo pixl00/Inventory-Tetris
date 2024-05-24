@@ -1,35 +1,37 @@
-[gd_scene load_steps=4 format=3 uid="uid://ddvl8ifh1ftw7"]
+[gd_scene load_steps=5 format=3 uid="uid://ddvl8ifh1ftw7"]
 
 [ext_resource type="Script" path="res://Scripts/Inventory.cs" id="1_nosul"]
 [ext_resource type="Texture2D" uid="uid://b4xyvfv8g545" path="res://Resources/KenneyAssets/InventoryTile.png" id="2_4fg4c"]
+[ext_resource type="Texture2D" uid="uid://nicqdppddvrb" path="res://Resources/DarkBlueGradiant.tres" id="2_r7p2t"]
 [ext_resource type="Script" path="res://Scripts/InventoryTile.cs" id="3_cjphq"]
 
-[node name="Inventory" type="Control" node_paths=PackedStringArray("Grid")]
+[node name="Inventory" type="Control" node_paths=PackedStringArray("Grid", "Background")]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 415.0
-offset_bottom = 466.0
+offset_right = 394.0
+offset_bottom = 394.0
 script = ExtResource("1_nosul")
-GridSize = Vector2i(8, 9)
+GridSize = Vector2i(8, 8)
 Grid = NodePath("Grid")
+Background = NodePath("Background")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.165656, 0.165656, 0.165656, 1)
+texture = ExtResource("2_r7p2t")
 
 [node name="Grid" type="GridContainer" parent="."]
 layout_mode = 0
 offset_left = 5.0
 offset_top = 5.0
-offset_right = 410.0
-offset_bottom = 461.0
-theme_override_constants/h_separation = 3
-theme_override_constants/v_separation = 3
+offset_right = 389.0
+offset_bottom = 389.0
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
 columns = 8
 
 [node name="00" type="TextureRect" parent="Grid"]
@@ -68,11 +70,6 @@ texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
 [node name="07" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
-[node name="08" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
@@ -117,11 +114,6 @@ layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
-[node name="18" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
 [node name="20" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
@@ -158,11 +150,6 @@ texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
 [node name="27" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
-[node name="28" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
@@ -207,11 +194,6 @@ layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
-[node name="38" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
 [node name="40" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
@@ -248,11 +230,6 @@ texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
 [node name="47" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
-[node name="48" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
@@ -297,11 +274,6 @@ layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
-[node name="58" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
 [node name="60" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
@@ -342,11 +314,6 @@ layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
-[node name="68" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
 [node name="70" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
@@ -383,11 +350,6 @@ texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")
 
 [node name="77" type="TextureRect" parent="Grid"]
-layout_mode = 2
-texture = ExtResource("2_4fg4c")
-script = ExtResource("3_cjphq")
-
-[node name="78" type="TextureRect" parent="Grid"]
 layout_mode = 2
 texture = ExtResource("2_4fg4c")
 script = ExtResource("3_cjphq")

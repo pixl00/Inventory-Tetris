@@ -7,9 +7,9 @@ public partial class InventoryTile : TextureRect
 	public Item Item { set; get; }
 
 	private InventoryTile(){}
-    public InventoryTile( Texture2D borderTexture )
+    public InventoryTile( InventoryStyle style )
 	{
-		Texture = borderTexture;
+		Texture = style.TileTexture;
 	}
 
     // Called when the node enters the scene tree for the first time.

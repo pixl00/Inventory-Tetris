@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using Microsoft.VisualBasic;
 using System;
 using System.ComponentModel;
@@ -8,7 +9,6 @@ using System.Reflection;
 [Tool]
 public partial class Inventory : Control
 {
-
 	[Export]
 	Resource Style { get; set; } = GD.Load( "res://Resources/CustomResources/DefaultInventoryStyle.tres" );
 
@@ -22,24 +22,28 @@ public partial class Inventory : Control
 	/// <summary>
 	/// The tile of the item that we are currently holding with the mouse
 	/// </summary>
-    [Export]
 	InventoryTile HeldTile { get; set; } = null;
 
     [ExportGroup( "Nodes" )]
     [Export]
     GridContainer Grid { get; set; }
 
+    [ExportGroup( "Nodes" )]
+    [Export]
+    TextureRect Background { get; set; }
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
 	{
 		Debug.Assert( Style != null, "Inventory: Style is null" );
 
+		Background.Texture = ((InventoryStyle)Style).Background;
+
         ResizeGrid();
         RepositionGrid();
 
-		
-
-		CallDeferred( "DeferredReady" );
+		if( !Engine.IsEditorHint()  )
+			CallDeferred( "DeferredReady" );
     }
 
 	/// <summary>
@@ -48,9 +52,9 @@ public partial class Inventory : Control
 	/// </summary>
 	public void DeferredReady()
 	{
-        AddItem( 0, 0 );
-        AddItem( 1, 0 );
-        AddItem( 3, 0 );
+        AddItem<Item>( new Array<InventoryTile> { GetTile( 0, 0 ) } );
+        AddItem<Item>( new Array<InventoryTile> { GetTile( 1, 0 ) } );
+		AddItem<Item>( new Array<InventoryTile> { GetTile( 2, 0 ) } );
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -58,6 +62,7 @@ public partial class Inventory : Control
 	{
 		if( Engine.IsEditorHint() )
 		{
+            Background.Texture = ((InventoryStyle)Style).Background;
             ResizeGrid();
 			RepositionGrid();
         }
@@ -81,7 +86,7 @@ public partial class Inventory : Control
 			}
 			if( click.ButtonIndex == MouseButton.Right && click.IsPressed() )
 			{
-				AddItem( GetClosestTile( click.Position ) );
+                AddItem<Item>( new Array<InventoryTile>{ GetClosestTile( click.Position ) } );
 			}
         }
         if( @event is InputEventMouseMotion motion )
@@ -111,11 +116,11 @@ public partial class Inventory : Control
 	/// <param name="canvasPosition">
 	/// Position in the canvas layer
 	/// </param>
-    public InventoryTile GetClosestTile( Vector2 controlPosition )
+    public InventoryTile GetClosestTile( Vector2 canvasPosition )
 	{
 		InventoryTile topLeftTile = GetTile( 0, 0 );
 		Vector2 bottomRight = GetTile( GridSize.X - 1, GridSize.Y - 1 ).GlobalPosition + topLeftTile.Size - topLeftTile.GlobalPosition;
-		Vector2 normalizedPos = controlPosition - topLeftTile.GlobalPosition;
+		Vector2 normalizedPos = canvasPosition - topLeftTile.GlobalPosition;
 	
 		// Outside the grid
         if( normalizedPos.X < 0f || normalizedPos.X >= bottomRight.X ||
@@ -126,8 +131,6 @@ public partial class Inventory : Control
 
 		int xIndex = (int)Math.Floor( normalizedPos.X / bottomRight.X * GridSize.X );
 		int yIndex = (int)Math.Floor( normalizedPos.Y / bottomRight.Y * GridSize.Y );
-
-		GD.Print( xIndex, yIndex );
 
 		return GetTile( xIndex, yIndex );
     }
@@ -151,7 +154,7 @@ public partial class Inventory : Control
 			{
                 for( uint y = 0; y < GridSize.Y; y++ )
                 {
-					InventoryTile tile = new InventoryTile( ((InventoryStyle)Style).TileTexture );
+					InventoryTile tile = new InventoryTile( (InventoryStyle)Style );
 					Grid.AddChild( tile );
                     tile.Name = x.ToString() + y.ToString();
                     tile.Owner = this;
@@ -178,7 +181,7 @@ public partial class Inventory : Control
 
 	public void RepositionGrid()
 	{
-        Grid.Position = Vector2.One * ((InventoryStyle)Style).GridPadding;
+		Grid.Position = Vector2.One * ((InventoryStyle)Style).GridPadding;
     }
 
 	private void DropHeldItem()
@@ -203,8 +206,6 @@ public partial class Inventory : Control
 		tile.Item = HeldTile.Item;
 		tile.Item.Position = Vector2.Zero;
 
-        GD.Print( HeldTile.Item.GlobalPosition );
-
 		HeldTile.Item = null;
 		HeldTile = null;
 	}
@@ -213,13 +214,15 @@ public partial class Inventory : Control
 	{
 		Color white = new Color( 1, 1, 1 );
 
-        Godot.Collections.Array<Node> tiles = Grid.GetChildren( true );
+        Array<Node> tiles = Grid.GetChildren( true );
         foreach( InventoryTile tile in tiles )
         {
             tile.SelfModulate = white;
             tile.Modulate = white;
         }
-		HeldTile.Item.SelfModulate = white;
+
+		if( HeldTile != null )
+			HeldTile.Item.SelfModulate = white;
     }
 
     private void UpdateTileHoveredColor()
@@ -245,25 +248,12 @@ public partial class Inventory : Control
         }
     }
 
-	public void AddItem( int x, int y )
+	public void AddItem<ItemType>( Array<InventoryTile> tiles ) where ItemType : Item
 	{
-		InventoryTile tile = GetTile( x, y );
-
-		AddItem( tile );
-    }
-
-	public void AddItem( InventoryTile tile )
-	{
-		if( tile == null || tile.HasItem() ) 
-			return;
-
-        GD.Print( tile.Name, " ", tile.Position );
-
-        tile.Item = new Item( ((InventoryStyle)Style).ItemBorder );
-
-		tile.AddChild( tile.Item );
-        tile.Item.Owner = this;
-
-        tile.Item.GlobalPosition = tile.GlobalPosition;
-    }
+		foreach( InventoryTile tile in tiles )
+			if( tile == null || tile.HasItem() )
+				return;
+		
+		ItemType item = (ItemType)Activator.CreateInstance( typeof( ItemType ), (InventoryStyle)Style, tiles );
+	}
 }
