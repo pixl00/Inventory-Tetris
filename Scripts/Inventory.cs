@@ -19,6 +19,9 @@ public partial class Inventory : Control
 		set { _gridSize = value.Clamp( Vector2I.One, Vector2I.MaxValue ); }
     }
 
+	/// <summary>
+	/// The tile of the item that we are currently holding with the mouse
+	/// </summary>
     [Export]
 	InventoryTile HeldTile { get; set; } = null;
 
@@ -34,9 +37,20 @@ public partial class Inventory : Control
         ResizeGrid();
         RepositionGrid();
 
-		AddItem( 0, 0 );
-		AddItem( 1, 0 );
-		AddItem( 3, 0 );
+		
+
+		CallDeferred( "DeferredReady" );
+    }
+
+	/// <summary>
+	/// Called from _Ready() with CallDeferred() <br/>
+	/// Mostly used for adding items which needs the inventory tiles positions
+	/// </summary>
+	public void DeferredReady()
+	{
+        AddItem( 0, 0 );
+        AddItem( 1, 0 );
+        AddItem( 3, 0 );
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -56,14 +70,14 @@ public partial class Inventory : Control
 		{
 			if( click.ButtonIndex == MouseButton.Left && click.IsPressed() )
 			{
-				InventoryTile tile = GetClosestTile( click.Position );
-				if( tile.ItemSlot != null )
+				InventoryTile tile = GetClosestTile( click.GlobalPosition );
+				if( tile.Item != null )
 					HeldTile = tile;
 			}
 			if( click.ButtonIndex == MouseButton.Left && click.IsReleased() )
 			{
-				DropHeldItem();
 				ClearTilesHoveredColor();
+				DropHeldItem();
 			}
 			if( click.ButtonIndex == MouseButton.Right && click.IsPressed() )
 			{
@@ -72,9 +86,9 @@ public partial class Inventory : Control
         }
         if( @event is InputEventMouseMotion motion )
         {
-            if( HeldTile != null && HeldTile.ItemSlot != null )
+            if( HeldTile != null && HeldTile.Item != null )
 			{
-				HeldTile.ItemSlot.Position += motion.Relative;
+				HeldTile.Item.Position += motion.Relative;
 				UpdateTileHoveredColor();
 			}
         }
@@ -94,11 +108,14 @@ public partial class Inventory : Control
     /// Returns the closest tile to the position <br/>
     /// Returns null if outside the grid
     /// </summary>
-    public InventoryTile GetClosestTile( Vector2 position )
+	/// <param name="canvasPosition">
+	/// Position in the canvas layer
+	/// </param>
+    public InventoryTile GetClosestTile( Vector2 controlPosition )
 	{
 		InventoryTile topLeftTile = GetTile( 0, 0 );
-		Vector2 bottomRight = GetTile( GridSize.X - 1, GridSize.Y - 1 ).Position + topLeftTile.Size - topLeftTile.Position;
-		Vector2 normalizedPos = position - topLeftTile.Position;
+		Vector2 bottomRight = GetTile( GridSize.X - 1, GridSize.Y - 1 ).GlobalPosition + topLeftTile.Size - topLeftTile.GlobalPosition;
+		Vector2 normalizedPos = controlPosition - topLeftTile.GlobalPosition;
 	
 		// Outside the grid
         if( normalizedPos.X < 0f || normalizedPos.X >= bottomRight.X ||
@@ -109,6 +126,8 @@ public partial class Inventory : Control
 
 		int xIndex = (int)Math.Floor( normalizedPos.X / bottomRight.X * GridSize.X );
 		int yIndex = (int)Math.Floor( normalizedPos.Y / bottomRight.Y * GridSize.Y );
+
+		GD.Print( xIndex, yIndex );
 
 		return GetTile( xIndex, yIndex );
     }
@@ -167,72 +186,84 @@ public partial class Inventory : Control
 		if( HeldTile == null )
 			return;
 
-		Vector2 itemPos = HeldTile.ItemSlot.GetMiddle();
+		Vector2 itemPos = HeldTile.Item.GetMiddleGlobal();
 
 		InventoryTile tile = GetClosestTile( itemPos );
 
-        GD.Print( HeldTile.Position );
-        GD.Print( tile.Position );
-
         if( tile == null || tile.HasItem() || tile == HeldTile )
 		{
-			HeldTile.ItemSlot.Position = HeldTile.Position;
+			HeldTile.Item.Position = Vector2.Zero;
             HeldTile = null;
             return;
 		}
 
-		HeldTile.ItemSlot.Position = tile.Position;
-		tile.ItemSlot = HeldTile.ItemSlot;
-		
-		HeldTile.ItemSlot = null;
+		HeldTile.RemoveChild( HeldTile.Item );
+		tile.AddChild( HeldTile.Item );
+
+		tile.Item = HeldTile.Item;
+		tile.Item.Position = Vector2.Zero;
+
+        GD.Print( HeldTile.Item.GlobalPosition );
+
+		HeldTile.Item = null;
 		HeldTile = null;
 	}
 
 	private void ClearTilesHoveredColor()
 	{
+		Color white = new Color( 1, 1, 1 );
+
         Godot.Collections.Array<Node> tiles = Grid.GetChildren( true );
-        foreach( InventoryTile itemTile in tiles )
+        foreach( InventoryTile tile in tiles )
         {
-            itemTile.SelfModulate = new Color( 1, 1, 1 );
+            tile.SelfModulate = white;
+            tile.Modulate = white;
         }
+		HeldTile.Item.SelfModulate = white;
     }
 
     private void UpdateTileHoveredColor()
     {
         ClearTilesHoveredColor();
 
-        InventoryTile tile = GetClosestTile( HeldTile.ItemSlot.GetMiddle() );
+        InventoryTile tile = GetClosestTile( HeldTile.Item.GetMiddleGlobal() );
 
 		if( tile == null )
 			return;
 
 		if( !tile.HasItem() || tile == HeldTile )
 		{
-			tile.SelfModulate = new Color( 0, 1, 0 );
+            Color green = new Color( 0, 1, 0 );
+            tile.SelfModulate = green;
+            HeldTile.Item.SelfModulate = green;
         }
 		else
 		{
-			tile.SelfModulate = new Color( 1, 0, 0 );
-		}
+            Color red = new Color( 1, 0, 0 );
+            tile.Modulate = red;
+            HeldTile.Item.SelfModulate = red;
+        }
     }
 
 	public void AddItem( int x, int y )
 	{
-        InventoryTile tile = GetTile( x, y );
+		InventoryTile tile = GetTile( x, y );
 
-		if( tile == null || tile.HasItem() ) 
-			return;
-
-       AddItem( tile );
+		AddItem( tile );
     }
 
 	public void AddItem( InventoryTile tile )
 	{
-        tile.ItemSlot = new Item( ((InventoryStyle)Style).ItemBorder );
+		if( tile == null || tile.HasItem() ) 
+			return;
 
-        tile.AddChild( tile.ItemSlot );
-        tile.ItemSlot.Owner = tile;
+        GD.Print( tile.Name, " ", tile.Position );
 
-        tile.ItemSlot.Position = Vector2.Zero;
+        tile.Item = new Item( ((InventoryStyle)Style).ItemBorder );
+
+		tile.AddChild( tile.Item );
+        tile.Item.Owner = this;
+
+        tile.Item.GlobalPosition = tile.GlobalPosition;
     }
 }

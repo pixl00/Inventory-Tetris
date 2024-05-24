@@ -42,6 +42,11 @@ public partial class Item : TextureRect
 
     public Vector2 GetMiddle()
     {
-        return Position + Size / 2f;
+        return Position + (Size / 2f);
+    }
+
+	public Vector2 GetMiddleGlobal() 
+	{
+        return GlobalPosition + (Size / 2f);
     }
 }

@@ -1,9 +1,10 @@
 using Godot;
 using System;
 
+[Tool]
 public partial class InventoryTile : TextureRect
 {
-	public Item ItemSlot { set; get; }
+	public Item Item { set; get; }
 
 	private InventoryTile(){}
     public InventoryTile( Texture2D borderTexture )
@@ -29,6 +30,6 @@ public partial class InventoryTile : TextureRect
 
 	public bool HasItem()
 	{
-		return ItemSlot != null;
+		return Item != null;
 	}
 }
