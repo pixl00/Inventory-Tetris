@@ -1,10 +1,7 @@
 using Godot;
 using Godot.Collections;
-using Microsoft.VisualBasic;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Reflection;
 
 [Tool]
 public partial class Inventory : Control
@@ -19,10 +16,13 @@ public partial class Inventory : Control
 		set { _gridSize = value.Clamp( Vector2I.One, Vector2I.MaxValue ); }
     }
 
-	/// <summary>
-	/// The tile of the item that we are currently holding with the mouse
-	/// </summary>
-	InventoryTile HeldTile { get; set; } = null;
+    /// <summary>
+    /// The tile of the item that we are currently holding with the mouse
+    /// </summary>
+    //InventoryTile HeldTile { get; set; } = null;
+
+    [Export]
+    private bool ManualUpdateGrid { get; set; } = true;
 
     [ExportGroup( "Nodes" )]
     [Export]
@@ -42,19 +42,24 @@ public partial class Inventory : Control
         ResizeGrid();
         RepositionGrid();
 
-		if( !Engine.IsEditorHint()  )
+        if( !Engine.IsEditorHint() )
 			CallDeferred( "DeferredReady" );
     }
 
 	/// <summary>
 	/// Called from _Ready() with CallDeferred() <br/>
-	/// Mostly used for adding items which needs the inventory tiles positions
+	/// Mostly used for adding items which needs the inventory tilesToOccupy positions
 	/// </summary>
 	public void DeferredReady()
 	{
-        AddItem<Item>( new Array<InventoryTile> { GetTile( 0, 0 ) } );
-        AddItem<Item>( new Array<InventoryTile> { GetTile( 1, 0 ) } );
-		AddItem<Item>( new Array<InventoryTile> { GetTile( 2, 0 ) } );
+		InventoryTile tile = GetTile( 0, 0 );
+		if( tile == null ) {
+			GD.PrintErr( "Tile null" );
+		}
+
+        TryAddItem<PipeWrench>( new Vector2I(0, 0) );
+        //TryAddItem<Item>( new Array<InventoryTile> { GetTile( 1, 0 ) } );
+		//TryAddItem<Item>( new Array<InventoryTile> { GetTile( 2, 0 ) } );
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -62,49 +67,26 @@ public partial class Inventory : Control
 	{
 		if( Engine.IsEditorHint() )
 		{
+			if( Background != null )
             Background.Texture = ((InventoryStyle)Style).Background;
-            ResizeGrid();
-			RepositionGrid();
+
+            Array<Node> tiles = Grid.GetChildren();
+            if( tiles.Count != GridSize.X * GridSize.Y || ((InventoryTile)tiles[0]).Size.X != ((InventoryStyle)Style).TileSize || ManualUpdateGrid )
+			{
+				ResizeGrid();
+				RepositionGrid();
+				ManualUpdateGrid = false;
+			}
         }
 	}
-
-
-    public override void _GuiInput( InputEvent @event )
-    {
-		if( @event is InputEventMouseButton click )
-		{
-			if( click.ButtonIndex == MouseButton.Left && click.IsPressed() )
-			{
-				InventoryTile tile = GetClosestTile( click.GlobalPosition );
-				if( tile.Item != null )
-					HeldTile = tile;
-			}
-			if( click.ButtonIndex == MouseButton.Left && click.IsReleased() )
-			{
-				ClearTilesHoveredColor();
-				DropHeldItem();
-			}
-			if( click.ButtonIndex == MouseButton.Right && click.IsPressed() )
-			{
-                AddItem<Item>( new Array<InventoryTile>{ GetClosestTile( click.Position ) } );
-			}
-        }
-        if( @event is InputEventMouseMotion motion )
-        {
-            if( HeldTile != null && HeldTile.Item != null )
-			{
-				HeldTile.Item.Position += motion.Relative;
-				UpdateTileHoveredColor();
-			}
-        }
-    }
 
     /// <summary>
 	/// Returns the tile at the indexes
 	/// </summary>
     public InventoryTile GetTile( int x, int y )
 	{
-		Debug.Assert( x >= 0 && y >= 0 && x < GridSize.X && y < GridSize.Y, "Inventory::GetItem(): Item index was outside the range" );
+		if( x < 0 || y < 0 || x >= GridSize.X || y >= GridSize.Y )
+			return null;
 
 		return (InventoryTile)Grid.GetChild( x + GridSize.X * y );
 	}
@@ -113,21 +95,15 @@ public partial class Inventory : Control
     /// Returns the closest tile to the position <br/>
     /// Returns null if outside the grid
     /// </summary>
-	/// <param name="canvasPosition">
-	/// Position in the canvas layer
-	/// </param>
-    public InventoryTile GetClosestTile( Vector2 canvasPosition )
+	/// <param name="pos"> Position in the CanvasLayer </param>
+    public InventoryTile GetClosestTile( Vector2 pos )
 	{
-		InventoryTile topLeftTile = GetTile( 0, 0 );
-		Vector2 bottomRight = GetTile( GridSize.X - 1, GridSize.Y - 1 ).GlobalPosition + topLeftTile.Size - topLeftTile.GlobalPosition;
-		Vector2 normalizedPos = canvasPosition - topLeftTile.GlobalPosition;
-	
-		// Outside the grid
-        if( normalizedPos.X < 0f || normalizedPos.X >= bottomRight.X ||
-			normalizedPos.Y < 0f || normalizedPos.Y >= bottomRight.Y )
-		{
-			return null;
-		}
+        if( !IsInside( pos ) )
+            return null;
+
+        Vector2 topLeft = GetTile( 0, 0 ).GlobalPosition;
+		Vector2 bottomRight = GetTile( GridSize.X - 1, GridSize.Y - 1 ).GlobalPosition - topLeft + (Vector2.One * ((InventoryStyle)Style).TileSize);
+		Vector2 normalizedPos = pos - topLeft;
 
 		int xIndex = (int)Math.Floor( normalizedPos.X / bottomRight.X * GridSize.X );
 		int yIndex = (int)Math.Floor( normalizedPos.Y / bottomRight.Y * GridSize.Y );
@@ -137,44 +113,44 @@ public partial class Inventory : Control
 
 	private void ResizeGrid()
 	{
-        Godot.Collections.Array<Node> tiles = Grid.GetChildren( true );
-		if( tiles.Count != GridSize.X * GridSize.Y  )
-		{
-			GD.Print( "Resize grid" );
+		GD.Print( "Resize grid ", ((InventoryStyle)Style).TileSize );
+		
+		Array<Node> tiles = Grid.GetChildren();
 
-            // Remove all tiles
-            foreach( Node tile in tiles )
-			{
-				tile.QueueFree();
-				Grid.RemoveChild( tile );
-			}
-			
-            // Add new tiles
-            for( uint x = 0; x < GridSize.X; x++ )
-			{
-                for( uint y = 0; y < GridSize.Y; y++ )
-                {
-					InventoryTile tile = new InventoryTile( (InventoryStyle)Style );
-					Grid.AddChild( tile );
-                    tile.Name = x.ToString() + y.ToString();
-                    tile.Owner = this;
-                }
-			}
+        // Remove all tiles
+		foreach( Node tile in tiles )
+		{
+			tile.QueueFree();
+			Grid.RemoveChild( tile );
 		}
+		
+        // Add new tiles
+        for( int x = 0; x < GridSize.X; x++ )
+		{
+			for( int y = 0; y < GridSize.Y; y++ )
+            {
+				InventoryTile tile = new InventoryTile( (InventoryStyle)Style );
+				tile.Index = new Vector2I( x, y );
+				Grid.AddChild( tile );
+                   tile.Name = x.ToString() + y.ToString();
+                   tile.Owner = this;
+            }
+		}
+
 		// Error if Columns < 1
         Grid.Columns = Math.Max(GridSize.X, 1);
 		Grid.Size = Vector2.Zero;
 
 		InventoryStyle style = (InventoryStyle)Style;
 
-		// Set padding between tiles
-        Grid.AddThemeConstantOverride( "h_separation", style.TilePadding );
-        Grid.AddThemeConstantOverride( "v_separation", style.TilePadding );
+		// Set padding between tilesToOccupy
+        Grid.AddThemeConstantOverride( "h_separation", 0 );
+        Grid.AddThemeConstantOverride( "v_separation", 0 );
 	   
-	
+		
         Vector2 NewSize = new Vector2(
-          style.TileTexture.GetWidth() * GridSize.X + (GridSize.X - 1) * style.TilePadding + style.GridPadding * 2,
-          style.TileTexture.GetHeight() * GridSize.Y + (GridSize.Y - 1) * style.TilePadding + style.GridPadding * 2 );
+			style.TileSize * GridSize.X + style.GridPadding * 2,
+			style.TileSize * GridSize.Y + style.GridPadding * 2 );
 
         Size = NewSize;
     }
@@ -184,76 +160,135 @@ public partial class Inventory : Control
 		Grid.Position = Vector2.One * ((InventoryStyle)Style).GridPadding;
     }
 
-	private void DropHeldItem()
+	public bool IsInside( Vector2 pos )
 	{
-		if( HeldTile == null )
-			return;
+		GD.Print( pos, GlobalPosition );
 
-		Vector2 itemPos = HeldTile.Item.GetMiddleGlobal();
-
-		InventoryTile tile = GetClosestTile( itemPos );
-
-        if( tile == null || tile.HasItem() || tile == HeldTile )
+		if( pos > GlobalPosition && pos < (GlobalPosition + Size) )
 		{
-			HeldTile.Item.Position = Vector2.Zero;
-            HeldTile = null;
-            return;
+			GD.Print( "Inside" );
+            return true;
+		}
+		GD.Print( "Outside" );
+		return false;
+    }
+
+    /// <summary>
+    /// Places an item in the inventory, TestItemPlacement() Should be called before this
+    /// </summary>
+    /// <param name="item"> The item to place </param>
+    /// <param name="moveLocal"> If the item already exists in this inventory and should only be moved locally </param>
+    /// <returns></returns>
+    public bool PlaceItem( Item item )
+	{
+		Array<Vector2> positions = item.GetMiddlePositions();
+
+		Array<InventoryTile> tilesToOccupy = new Array<InventoryTile>();
+
+        // Get the tiles that the items should occupy
+        foreach (var position in positions)
+        {
+			InventoryTile tile = GetClosestTile( position );
+			tilesToOccupy.Add( tile );
+        }
+
+        foreach (var tile in tilesToOccupy)
+            tile.Item = item;
+
+        tilesToOccupy[0].AddChild( item );
+		item.Owner = this;
+
+        item.GlobalPosition = tilesToOccupy[0].GlobalPosition;
+
+		return true;
+    }
+
+	public bool TestItemPlacement( Item item )
+	{
+        Array<Vector2> positions = item.GetMiddlePositions();
+
+        // Check the tiles that the items should occupy
+        foreach( var position in positions )
+        {
+            InventoryTile tile = GetClosestTile( position );
+            if( tile == null || (tile.HasItem() && tile.Item != item) )
+			{
+				GD.Print( "inv" );
+                return false;
+			}
+        }
+		return true;
+    }
+
+	public void RemoveItem( Item item )
+	{
+		Array<Node> tiles = Grid.GetChildren();
+        foreach (InventoryTile tile in tiles )
+		{
+			if( tile.Item == item )
+			{
+				if( tile.IsAncestorOf( item ) )
+					tile.RemoveChild( item );
+				tile.Item = null;
+			}
+
+		}
+    }
+
+	
+	public void ReturnItem( Item item )
+	{
+        Array<Node> tiles = Grid.GetChildren();
+		Array<InventoryTile> tilesContainingItem = new Array<InventoryTile> { };
+        foreach( InventoryTile tile in tiles )
+            if( tile.Item == item )
+                tilesContainingItem.Add( tile );
+
+		InventoryTile topLeft = null;
+		foreach( InventoryTile tile in tilesContainingItem )
+			if( topLeft == null || tile.GlobalPosition < topLeft.GlobalPosition )
+				topLeft = tile;
+
+		item.GlobalPosition = topLeft.GlobalPosition;
+    } 
+
+	/// <summary>
+	/// Adds a new item to the inventory
+	/// </summary>
+	/// <typeparam name="ItemType"> The type of item to add </typeparam>
+	/// <param name="tileIndex"> The index of the top left tile that the item should be placed at </param>
+	public bool TryAddItem<ItemType>( Vector2I tileIndex ) where ItemType : Item
+	{
+        Item item = (ItemType)Activator.CreateInstance( typeof( ItemType ) );
+		item.SetTileSize( item.ItemSize * ((InventoryStyle)Style).TileSize );
+
+		Array<InventoryTile> tilesToOccupy = new Array<InventoryTile>();
+
+        for (int x = 0; x < item.ItemSize.X; x++ )
+		{
+			for (int y = 0; y < item.ItemSize.Y; y++ )
+			{
+				InventoryTile tile = GetTile( tileIndex.X + x, tileIndex.Y + y );
+				if( !tile.HasItem() )
+					tilesToOccupy.Add( tile );
+				else
+				{
+					GD.Print( Name, ": Failed to add item, tile already occupied" );
+					return false;
+				}
+			}
 		}
 
-		HeldTile.RemoveChild( HeldTile.Item );
-		tile.AddChild( HeldTile.Item );
+        foreach (var tile in tilesToOccupy)
+			tile.Item = item;
 
-		tile.Item = HeldTile.Item;
-		tile.Item.Position = Vector2.Zero;
+        tilesToOccupy[0].AddChild( item );
+        item.Owner = this;
 
-		HeldTile.Item = null;
-		HeldTile = null;
-	}
+        item.GlobalPosition = tilesToOccupy[0].GlobalPosition;
 
-	private void ClearTilesHoveredColor()
-	{
-		Color white = new Color( 1, 1, 1 );
+        GD.Print( Name, ": Added item" );
 
-        Array<Node> tiles = Grid.GetChildren( true );
-        foreach( InventoryTile tile in tiles )
-        {
-            tile.SelfModulate = white;
-            tile.Modulate = white;
-        }
-
-		if( HeldTile != null )
-			HeldTile.Item.SelfModulate = white;
+        return true;
     }
-
-    private void UpdateTileHoveredColor()
-    {
-        ClearTilesHoveredColor();
-
-        InventoryTile tile = GetClosestTile( HeldTile.Item.GetMiddleGlobal() );
-
-		if( tile == null )
-			return;
-
-		if( !tile.HasItem() || tile == HeldTile )
-		{
-            Color green = new Color( 0, 1, 0 );
-            tile.SelfModulate = green;
-            HeldTile.Item.SelfModulate = green;
-        }
-		else
-		{
-            Color red = new Color( 1, 0, 0 );
-            tile.Modulate = red;
-            HeldTile.Item.SelfModulate = red;
-        }
-    }
-
-	public void AddItem<ItemType>( Array<InventoryTile> tiles ) where ItemType : Item
-	{
-		foreach( InventoryTile tile in tiles )
-			if( tile == null || tile.HasItem() )
-				return;
-		
-		ItemType item = (ItemType)Activator.CreateInstance( typeof( ItemType ), (InventoryStyle)Style, tiles );
-	}
 }

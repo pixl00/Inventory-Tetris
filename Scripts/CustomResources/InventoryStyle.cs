@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.ComponentModel;
 
 [GlobalClass]
 [Tool]
@@ -14,18 +15,8 @@ public partial class InventoryStyle : Resource
     public Texture2D Background { get; private set; } = (Texture2D)GD.Load( "res://Resources/DarkBlueGradiant.tres" );
 
     [Export]
-    public Texture2D ItemBorder { get; private set; } = (Texture2D)GD.Load( "res://Resources/KenneyAssets/ItemBorder.png" );
+    public int GridPadding { get; private set; } = 5;
 
     [Export]
-    public Texture2D ItemBackground { get; private set; } = (Texture2D)GD.Load( "res://Resources/BlackTranslucent.png" );
-
-    // Add later maybe
-    //[Export] 
-    //public int TileSize { get; private set; } = 30;
-
-    [Export]
-    public int TilePadding { get; private set; }
-
-    [Export]
-    public int GridPadding { get; private set; }
+    public int TileSize { get; private set; } = 50;
 }

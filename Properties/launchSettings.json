@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Inventory-tetris": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\DennLov\\Documents\\Git\\Inventory-Tetris"
+    }
+  }
+}

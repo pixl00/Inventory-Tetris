@@ -2,27 +2,56 @@ using Godot;
 using System;
 using Godot.Collections;
 
+[GlobalClass]
 [Tool]
 public partial class Item : Control
 {
-	public Godot.Collections.Array<InventoryTile> Tiles { get; set; }
+	public Vector2I ItemSize { get; set; } = new Vector2I( 1, 1 );
 
-	[Export]TextureRect Icon { get; set; }
-	[Export]TextureRect Background { get; set; }
-	[Export]TextureRect Border { get; set; }
+	[Export] protected TextureRect Icon { get; set; }
+	[Export] protected TextureRect Background { get; set; }
+	[Export] protected TextureRect Border { get; set; }
    
-    protected Item(){}
-    public Item( InventoryStyle style, Array<InventoryTile> tiles ) 
+	public Item() 
 	{
-		Background.Texture = style.ItemBackground;
-		Border.Texture = style.ItemBorder;
+        InitInternal();
+		SetTextures();
+        MouseFilter = MouseFilterEnum.Ignore;
+		ZAsRelative = true;
+    }
+	private void InitInternal()
+	{
+		Icon = new TextureRect();
+        Background = new TextureRect();
+        Border = new TextureRect();
 
-        Tiles = tiles;
+        AddChild( Icon );
+        AddChild( Background );
+        AddChild( Border );
 
-		foreach( InventoryTile tile in Tiles )
-			tile.Item = this;
+		Icon.Owner = this;
+        Background.Owner = this;
+        Border.Owner = this;
 
-		Reposition();
+		Icon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        Background.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        Border.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+    }
+
+	public virtual void SetTextures()
+	{
+		GD.PrintErr( Name, ": No SetTextures override defined, loading default" );
+        Background.Texture = (Texture2D)GD.Load( "res://Resources/BlackTranslucent.png" ); ;
+        Border.Texture = (Texture2D)GD.Load( "res://Resources/KenneyAssets/ItemBorder.png" ); ;
+        Icon.Texture = (Texture2D)GD.Load( "res://icon.svg" ); ;
+    }
+
+	public void SetTileSize( Vector2 size )
+	{
+		SetSize( size );
+        Background.SetSize( size );
+        Border.SetSize( size );
+        Icon.SetSize( size );
     }
 
     // Called when the node enters the scene tree for the first time.
@@ -36,42 +65,29 @@ public partial class Item : Control
 	{
 	}
 
-    public override void _GuiInput( InputEvent @event )
-    {
-        if( @event is InputEventMouseButton click ) 
-		{
-			if( click.ButtonIndex == MouseButton.Left && click.IsReleased() )
-			{
-				// Inventory.updateItem
-			}
-		}
-        if( @event is InputEventMouseMotion motion )
-		{
-			//Position.
-		}
-    }
-
-	public void Reposition()
+    /// <summary>
+    /// Gets the position of the top left tile of the tile that this item would occupy 
+    /// </summary>
+    /// <returns></returns>
+    public Vector2 GetTopLeftMiddlePos()
 	{
-		Vector2 topLeft = new Vector2( int.MaxValue, int.MaxValue );
+		return GlobalPosition + (Size / ItemSize / 2);
+	}
 
-        foreach (var tile in Tiles)
-        {
-            if( tile.Position.X < topLeft.X )
-				topLeft.X = tile.Position.X;
-            if( tile.Position.Y < topLeft.Y )
-                topLeft.Y = tile.Position.Y;
-        }
-		Position = topLeft;
-    }
-
-    public Vector2 GetMiddle()
-    {
-        return Position + (Size / 2f);
-    }
-
-	public Vector2 GetMiddleGlobal() 
+	/// <summary>
+	/// Gets the middle position of all the tiles that this item would occupy
+	/// </summary>
+	/// <returns></returns>
+	public Array<Vector2> GetMiddlePositions()
 	{
-        return GlobalPosition + (Size / 2f);
+		Array<Vector2> positions = new Array<Vector2>();
+
+		Vector2 topLeft = GetTopLeftMiddlePos();
+
+        for (int y = 0; y < ItemSize.Y; y++)
+			for (int x = 0; x < ItemSize.X; x++)
+				positions.Add( topLeft + (Size / ItemSize * new Vector2( x, y )) );
+
+		return positions;
     }
 }

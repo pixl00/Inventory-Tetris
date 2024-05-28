@@ -1,8 +1,6 @@
-[gd_resource type="Resource" script_class="InventoryStyle" load_steps=6 format=3 uid="uid://71ud2gswpbqn"]
+[gd_resource type="Resource" script_class="InventoryStyle" load_steps=4 format=3 uid="uid://71ud2gswpbqn"]
 
 [ext_resource type="Texture2D" uid="uid://nicqdppddvrb" path="res://Resources/DarkBlueGradiant.tres" id="1_0f5dn"]
-[ext_resource type="Texture2D" uid="uid://qgaj54wnesxy" path="res://Resources/KenneyAssets/ItemBorder.png" id="1_hqdh4"]
-[ext_resource type="Texture2D" uid="uid://cfdoqh7x6bs2r" path="res://Resources/BlackTranslucent.png" id="2_mqqpy"]
 [ext_resource type="Script" path="res://Scripts/CustomResources/InventoryStyle.cs" id="3_1k1l8"]
 [ext_resource type="Texture2D" uid="uid://b4xyvfv8g545" path="res://Resources/KenneyAssets/InventoryTile.png" id="3_84lwt"]
 
@@ -10,8 +8,5 @@
 script = ExtResource("3_1k1l8")
 TileTexture = ExtResource("3_84lwt")
 Background = ExtResource("1_0f5dn")
-ItemBorder = ExtResource("1_hqdh4")
-ItemBackground = ExtResource("2_mqqpy")
-TileSize = 1
-TilePadding = 0
 GridPadding = 5
+TileSize = 50
