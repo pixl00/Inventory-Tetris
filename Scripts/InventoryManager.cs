@@ -10,7 +10,7 @@ public partial class InventoryManager : Control
 	public Item HeldItem { get; set; }
 
 	/// <summary>
-	/// The inventory that the HeldItem is in
+	/// The inventory that the HeldItem is from
 	/// </summary>
 	private Inventory HeldItemInventory {  get; set; }
 
@@ -22,7 +22,23 @@ public partial class InventoryManager : Control
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-	}
+        foreach (var inventory in Inventories)
+            inventory.ClearDisplayItemPlacement();
+
+        if ( HeldItem != null )
+		{
+			Array<Vector2> positions = HeldItem.GetMiddlePositions();
+
+            foreach (var pos in positions)
+            {
+                Inventory inv = GetHoveredInventory( pos );
+                if( inv != null )
+                {
+                    inv.DisplayItemPlacement( HeldItem );
+                }
+            }
+		}
+    }
 
     public override void _GuiInput( InputEvent @event )
     {
@@ -31,11 +47,14 @@ public partial class InventoryManager : Control
             if( click.ButtonIndex == MouseButton.Left && click.IsPressed() )
 			{
 				TryGrabItem( click.GlobalPosition );
-				GD.Print( "click" );
 			}
             if( click.ButtonIndex == MouseButton.Left && click.IsReleased() )
             {
 				TryDropHeldItem();
+            }
+            if( click.ButtonIndex == MouseButton.Right && click.IsPressed() )
+            {
+                TestTile( click.GlobalPosition );
             }
         }
 
@@ -43,18 +62,30 @@ public partial class InventoryManager : Control
 		{
 			if( HeldItem != null )
 			{
-				HeldItem.Position += motion.Relative;
-
+				HeldItem.GlobalPosition += motion.Relative;
 			}
 		}
     }
 
-	/// <summary>
-	/// Gets the currently hovered inventory
-	/// </summary>
-	/// <param name="pos"> Position in CanvasLayer </param>
-	/// <returns></returns>
-	private Inventory GetHoveredInventory( Vector2 pos )
+    public override void _Draw()
+    {
+        if( HeldItem != null )
+        {
+            GD.Print( "draw" );
+            Array<Vector2> positions = HeldItem.GetMiddlePositions();
+            foreach( var pos in positions )
+            {
+                DrawCircle( pos, 40, new Color( 0, 1, 1 ) );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the currently hovered inventory
+    /// </summary>
+    /// <param name="pos"> Position in CanvasLayer </param>
+    /// <returns></returns>
+    private Inventory GetHoveredInventory( Vector2 pos )
 	{
 		Inventory hoveredInventory = null;
 
@@ -69,8 +100,6 @@ public partial class InventoryManager : Control
 				continue;
 			}
         }
-		if( hoveredInventory != null )
-			GD.Print( hoveredInventory.Name );
 
 		return hoveredInventory;
     }
@@ -92,8 +121,32 @@ public partial class InventoryManager : Control
 		HeldItem = tile.Item;
 		HeldItemInventory = hoveredInventory;
 		HeldItem.ZIndex = (int)RenderingServer.CanvasItemZMax;
+    }
 
-		GD.Print( "Grabbed item" );
+	private void TestTile( Vector2 pos )
+	{
+        Inventory hoveredInventory = GetHoveredInventory( pos );
+        if( hoveredInventory == null )
+		{
+            GD.Print( "Inventory: No inventory\n" );
+			return;
+		}
+        GD.Print( "Inventory: ", hoveredInventory.Name );
+
+        InventoryTile tile = hoveredInventory.GetClosestTile( pos );
+        if( tile == null )
+		{
+            GD.Print( "Tile: No tile\n" );
+            return;
+        }
+        GD.Print( "Tile: ", tile.Name );
+
+        if( tile.Item == null )
+		{
+            GD.Print( "Item: No item\n" );
+            return;
+        }
+		GD.Print( "Item: ", tile.Item.GetType(), "\n" );
     }
 
     /// <summary>
@@ -111,30 +164,26 @@ public partial class InventoryManager : Control
 		// Inventory at items bottom right position
         Inventory hoveredInventory2 = GetHoveredInventory( positions[positions.Count - 1] );
 
-        if( hoveredInventory == null || hoveredInventory2 == null || (hoveredInventory != hoveredInventory2) )
-		{
-			HeldItemInventory.ReturnItem( HeldItem );
-            HeldItem = null;
-            HeldItemInventory = null;
-            return;
-		}
+        bool canPlace = hoveredInventory != null ? hoveredInventory.TestItemPlacement( HeldItem ) : false;
 
-        bool canPlace = hoveredInventory.TestItemPlacement( HeldItem );
-
-		if( canPlace )
-		{
-			HeldItemInventory.RemoveItem( HeldItem );
-			hoveredInventory.PlaceItem( HeldItem );
-			GD.Print( "Held item moved" );
-		}
-		else
+        if( !canPlace || hoveredInventory == null || hoveredInventory2 == null || (hoveredInventory != hoveredInventory2) )
 		{
 			HeldItemInventory.ReturnItem( HeldItem );
 			GD.Print( "Held item returned to old inventory" );
 		}
+        else if( canPlace )
+        {
+            hoveredInventory.TestItemPlacement( HeldItem );
+            HeldItemInventory.RemoveItem( HeldItem );
+            hoveredInventory.TestItemPlacement( HeldItem );
+            hoveredInventory.PlaceItem( HeldItem );
+            hoveredInventory.TestItemPlacement( HeldItem );
+            GD.Print( "Held item moved" );
+        }
 		
 		HeldItem = null;
 		HeldItemInventory = null;
+        GD.Print( "" );
     }
 
 }

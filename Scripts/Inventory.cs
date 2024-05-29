@@ -58,8 +58,8 @@ public partial class Inventory : Control
 		}
 
         TryAddItem<PipeWrench>( new Vector2I(0, 0) );
-        //TryAddItem<Item>( new Array<InventoryTile> { GetTile( 1, 0 ) } );
-		//TryAddItem<Item>( new Array<InventoryTile> { GetTile( 2, 0 ) } );
+        TryAddItem<Money>( new Vector2I(0, 2) );
+        TryAddItem<Computer>( new Vector2I(1, 0) );
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -111,7 +111,22 @@ public partial class Inventory : Control
 		return GetTile( xIndex, yIndex );
     }
 
-	private void ResizeGrid()
+    public override void _Draw()
+    {
+        base._Draw();
+        Array<Node> tiles = Grid.GetChildren();
+
+		foreach( InventoryTile tile in tiles )
+		{
+			if( tile.Item != null ) 
+			{
+				DrawCircle( tile.Item.GetTopLeftMiddlePos(), 40, new Color( 0, 1, 0 ) );
+				GD.Print( tile.Name );
+			}
+		}
+    }
+
+    private void ResizeGrid()
 	{
 		GD.Print( "Resize grid ", ((InventoryStyle)Style).TileSize );
 		
@@ -162,43 +177,44 @@ public partial class Inventory : Control
 
 	public bool IsInside( Vector2 pos )
 	{
-		GD.Print( pos, GlobalPosition );
-
 		if( pos > GlobalPosition && pos < (GlobalPosition + Size) )
 		{
-			GD.Print( "Inside" );
             return true;
 		}
-		GD.Print( "Outside" );
 		return false;
     }
 
-    /// <summary>
-    /// Places an item in the inventory, TestItemPlacement() Should be called before this
-    /// </summary>
-    /// <param name="item"> The item to place </param>
-    /// <param name="moveLocal"> If the item already exists in this inventory and should only be moved locally </param>
-    /// <returns></returns>
-    public bool PlaceItem( Item item )
+	/// <summary>
+	/// Places an item in the inventory, TestItemPlacement() Should be called before this
+	/// </summary>
+	/// <param name="item"> The item to place </param>
+	/// <param name="moveLocal"> If the item already exists in this inventory and should only be moved locally </param>
+	/// <returns></returns>
+	public bool PlaceItem( Item item )
 	{
+		if( item == null )
+			return false;
+
+		if( !TestItemPlacement( item ) )
+			return false;
+
 		Array<Vector2> positions = item.GetMiddlePositions();
 
 		Array<InventoryTile> tilesToOccupy = new Array<InventoryTile>();
 
-        // Get the tiles that the items should occupy
-        foreach (var position in positions)
-        {
+		// Get the tiles that the items should occupy
+		foreach( var position in positions )
+		{
 			InventoryTile tile = GetClosestTile( position );
 			tilesToOccupy.Add( tile );
-        }
+		}
 
-        foreach (var tile in tilesToOccupy)
-            tile.Item = item;
+		foreach( var tile in tilesToOccupy )
+			tile.Item = item;
 
-        tilesToOccupy[0].AddChild( item );
+		tilesToOccupy[0].AddChild( item );
 		item.Owner = this;
-
-        item.GlobalPosition = tilesToOccupy[0].GlobalPosition;
+		item.GlobalPosition = tilesToOccupy[0].GlobalPosition;
 
 		return true;
     }
@@ -207,39 +223,107 @@ public partial class Inventory : Control
 	{
         Array<Vector2> positions = item.GetMiddlePositions();
 
-        // Check the tiles that the items should occupy
+        // Check the tiles that the item should occupy
         foreach( var position in positions )
         {
             InventoryTile tile = GetClosestTile( position );
-            if( tile == null || (tile.HasItem() && tile.Item != item) )
+            if( !CheckTile( tile, item ) )
 			{
-				GD.Print( "inv" );
+				GD.Print( "Item can not be placed here" );
                 return false;
 			}
         }
-		return true;
+        GD.Print( "Item can be placed here" );
+        return true;
     }
 
-	public void RemoveItem( Item item )
+    /// <summary>
+    /// Returns true if the an item can be placed in the tile,
+    /// Input an item to include it as a valid place
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <param name="item"></param>
+    /// <returns></returns>
+    public bool CheckTile( InventoryTile tile, Item item = null )
+    {
+        if( tile == null )
+        {
+            GD.Print( "Tile was null" );
+            return false;
+        }
+
+        if( tile.HasItem() )
+        {
+            if( item != null && tile.Item == item )
+                return true;
+            else
+                return false;
+        }
+        else
+            return true;
+    }
+
+    public void DisplayItemPlacement( Item item )
+	{
+        Array<Vector2> positions = item.GetMiddlePositions();
+
+        // Check the tiles that the item should occupy
+        foreach( var position in positions )
+        {
+            InventoryTile tile = GetClosestTile( position );
+            if( tile == null )
+				continue;
+
+			if( CheckTile( tile, item ) )
+			{
+
+                tile.SelfModulate = new Color( 0, 1, 0 );
+			}
+			else
+			{
+				tile.SelfModulate = new Color( 1, 0, 0 );
+				tile.Item.Modulate = new Color( 1, 0, 0 );
+				item.Modulate = new Color( 1, 0, 0 );
+            }
+        }
+    }
+
+    public void ClearDisplayItemPlacement()
+	{
+        Array<Node> tiles = Grid.GetChildren();
+
+        foreach( InventoryTile tile in tiles )
+		{
+            tile.SelfModulate = new Color( 1, 1, 1 );
+			if( tile.HasItem() )
+				tile.Item.Modulate = new Color( 1, 1, 1 );
+        }
+    }
+
+    public void RemoveItem( Item item )
 	{
 		Array<Node> tiles = Grid.GetChildren();
         foreach (InventoryTile tile in tiles )
 		{
 			if( tile.Item == item )
 			{
-				if( tile.IsAncestorOf( item ) )
+				if( tile.GetChildCount() >= 1 && tile.GetChild( 0 ) == item )
+				{
+					// Removing a child apparently changes the position of the removed child
+					Vector2 savePos = item.GlobalPosition;
 					tile.RemoveChild( item );
+					item.GlobalPosition = savePos;
+				}
+				
 				tile.Item = null;
 			}
-
 		}
     }
-
 	
 	public void ReturnItem( Item item )
 	{
         Array<Node> tiles = Grid.GetChildren();
-		Array<InventoryTile> tilesContainingItem = new Array<InventoryTile> { };
+		Array<InventoryTile> tilesContainingItem = new Array<InventoryTile>();
         foreach( InventoryTile tile in tiles )
             if( tile.Item == item )
                 tilesContainingItem.Add( tile );
@@ -287,7 +371,7 @@ public partial class Inventory : Control
 
         item.GlobalPosition = tilesToOccupy[0].GlobalPosition;
 
-        GD.Print( Name, ": Added item" );
+        GD.Print( Name, ": Added item (", item.GetType(),")" );
 
         return true;
     }

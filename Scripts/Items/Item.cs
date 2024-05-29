@@ -19,6 +19,10 @@ public partial class Item : Control
         MouseFilter = MouseFilterEnum.Ignore;
 		ZAsRelative = true;
     }
+	~Item()
+	{
+		// free texture
+	}
 	private void InitInternal()
 	{
 		Icon = new TextureRect();

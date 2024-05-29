@@ -3,6 +3,13 @@
     "Inventory-tetris": {
       "commandName": "Project",
       "workingDirectory": "C:\\Users\\DennLov\\Documents\\Git\\Inventory-Tetris"
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\DennLov\\Documents\\Godot_v4.2.2-stable_mono_win64\\Godot.exe",
+      "commandLineArgs": "--path . --verbose",
+      "workingDirectory": ".",
+      "nativeDebugging": true
     }
   }
 }
