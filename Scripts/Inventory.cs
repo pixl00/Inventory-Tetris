@@ -60,6 +60,7 @@ public partial class Inventory : Control
         TryAddItem<PipeWrench>( new Vector2I(0, 0) );
         TryAddItem<Money>( new Vector2I(0, 2) );
         TryAddItem<Computer>( new Vector2I(1, 0) );
+        TryAddItem<Drill>( new Vector2I(0, 3) );
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -215,7 +216,7 @@ public partial class Inventory : Control
 		tilesToOccupy[0].AddChild( item );
 		item.Owner = this;
 		item.GlobalPosition = tilesToOccupy[0].GlobalPosition;
-
+		item.ZIndex = ZIndex + 2;
 		return true;
     }
 
@@ -334,6 +335,7 @@ public partial class Inventory : Control
 				topLeft = tile;
 
 		item.GlobalPosition = topLeft.GlobalPosition;
+		item.ZIndex = ZIndex + 2;
     } 
 
 	/// <summary>
@@ -344,7 +346,9 @@ public partial class Inventory : Control
 	public bool TryAddItem<ItemType>( Vector2I tileIndex ) where ItemType : Item
 	{
         Item item = (ItemType)Activator.CreateInstance( typeof( ItemType ) );
-		item.SetTileSize( item.ItemSize * ((InventoryStyle)Style).TileSize );
+		item.InventoryStyle = (InventoryStyle)Style;
+		item.SetTileSize( item.ItemSize );
+		item.ZIndex = ZIndex + 2;
 
 		Array<InventoryTile> tilesToOccupy = new Array<InventoryTile>();
 

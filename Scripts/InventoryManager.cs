@@ -12,7 +12,11 @@ public partial class InventoryManager : Control
 	/// <summary>
 	/// The inventory that the HeldItem is from
 	/// </summary>
-	private Inventory HeldItemInventory {  get; set; }
+	private Inventory HeldItemInventory { get; set; }
+    /// <summary>
+    /// What rotation the item had when it was picked up
+    /// </summary>
+    private bool HeldItemRotation { get; set; }
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -62,22 +66,21 @@ public partial class InventoryManager : Control
 		{
 			if( HeldItem != null )
 			{
-				HeldItem.GlobalPosition += motion.Relative;
+				HeldItem.Position += motion.Relative;
 			}
 		}
     }
 
+    public override void _Input( InputEvent @event )
+    {
+        if( @event.IsActionPressed( "Rotate_Item" ) && HeldItem != null )
+        {
+            HeldItem.Rotate( GetGlobalMousePosition() );
+        }
+    }
+
     public override void _Draw()
     {
-        if( HeldItem != null )
-        {
-            GD.Print( "draw" );
-            Array<Vector2> positions = HeldItem.GetMiddlePositions();
-            foreach( var pos in positions )
-            {
-                DrawCircle( pos, 40, new Color( 0, 1, 1 ) );
-            }
-        }
     }
 
     /// <summary>
@@ -120,6 +123,7 @@ public partial class InventoryManager : Control
 
 		HeldItem = tile.Item;
 		HeldItemInventory = hoveredInventory;
+        HeldItemRotation = tile.Item.Rotated;
 		HeldItem.ZIndex = (int)RenderingServer.CanvasItemZMax;
     }
 
@@ -168,16 +172,15 @@ public partial class InventoryManager : Control
 
         if( !canPlace || hoveredInventory == null || hoveredInventory2 == null || (hoveredInventory != hoveredInventory2) )
 		{
+            if( HeldItemRotation != HeldItem.Rotated ) 
+                HeldItem.Rotate( GetGlobalMousePosition() );
 			HeldItemInventory.ReturnItem( HeldItem );
 			GD.Print( "Held item returned to old inventory" );
 		}
         else if( canPlace )
         {
-            hoveredInventory.TestItemPlacement( HeldItem );
             HeldItemInventory.RemoveItem( HeldItem );
-            hoveredInventory.TestItemPlacement( HeldItem );
             hoveredInventory.PlaceItem( HeldItem );
-            hoveredInventory.TestItemPlacement( HeldItem );
             GD.Print( "Held item moved" );
         }
 		
