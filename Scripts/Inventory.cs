@@ -58,7 +58,8 @@ public partial class Inventory : Control
 		}
 
         TryAddItem<PipeWrench>( new Vector2I(0, 0) );
-        TryAddItem<Money>( new Vector2I(0, 2) );
+        TryAddItem<Money>( new Vector2I(0, 2), 150_000 );
+        TryAddItem<Money>( new Vector2I(3, 0), 10_000 );
         TryAddItem<Computer>( new Vector2I(1, 0) );
         TryAddItem<Drill>( new Vector2I(0, 3) );
     }
@@ -196,9 +197,6 @@ public partial class Inventory : Control
 		if( item == null )
 			return false;
 
-		if( !TestItemPlacement( item ) )
-			return false;
-
 		Array<Vector2> positions = item.GetMiddlePositions();
 
 		Array<InventoryTile> tilesToOccupy = new Array<InventoryTile>();
@@ -220,7 +218,19 @@ public partial class Inventory : Control
 		return true;
     }
 
-	public bool TestItemPlacement( Item item )
+    public int StackItem( StackableItem item )
+    {
+        if( item == null )
+            return 0;
+
+        InventoryTile tile = GetClosestTile( item.GetTopLeftMiddlePos() );
+
+		int remainder = ((StackableItem)tile.Item).AddAmount( item.ItemAmount );
+
+		return remainder;
+    }
+
+    public bool TestItemPlacement( Item item )
 	{
         Array<Vector2> positions = item.GetMiddlePositions();
 
@@ -240,7 +250,8 @@ public partial class Inventory : Control
 
     /// <summary>
     /// Returns true if the an item can be placed in the tile,
-    /// Input an item to include it as a valid place
+    /// Input an item to include it as a valid place.
+	/// Also returns true if the item and the tile.Item Stackable and the same type
     /// </summary>
     /// <param name="tile"></param>
     /// <param name="item"></param>
@@ -255,13 +266,50 @@ public partial class Inventory : Control
 
         if( tile.HasItem() )
         {
-            if( item != null && tile.Item == item )
-                return true;
-            else
+			if( item != null ) 
+			{
+				if( (tile.Item == item) )
+				{
+                    GD.Print( "item is tile item" );
+                    return true;
+				}
+				if( (item is StackableItem) )
+				{
+					if( tile.Item is StackableItem )
+					{
+						if( item.GetType() == tile.Item.GetType() )
+						{
+							return true;
+						}
+						else
+						{
+                            GD.Print( "item and tile are not the same type" );
+                            return false;
+                        }
+					}
+					else
+					{
+                        GD.Print( "tile is not stackable" );
+						return false;
+                    }
+				}
+				else
+				{
+					GD.Print( "item is not stackable" );
+					return false;
+				}
+            }
+			else
+			{
+                GD.Print( "item can be placed" );
                 return false;
+			}
         }
-        else
+		else
+		{
+            GD.Print( "item can be placed" );
             return true;
+		}
     }
 
     public void DisplayItemPlacement( Item item )
@@ -277,14 +325,17 @@ public partial class Inventory : Control
 
 			if( CheckTile( tile, item ) )
 			{
-
-                tile.SelfModulate = new Color( 0, 1, 0 );
-			}
+                Color green = new Color( 0, 1, 0, 0.5f );
+				tile.Modulate = green;
+				//tile.Item.Modulate = green;
+                item.Modulate = green;
+            }
 			else
 			{
-				tile.SelfModulate = new Color( 1, 0, 0 );
-				tile.Item.Modulate = new Color( 1, 0, 0 );
-				item.Modulate = new Color( 1, 0, 0 );
+				Color red = new Color( 1, 0, 0, 0.5f );
+				tile.Modulate = red;
+                tile.Item.Modulate = red;
+                item.Modulate = red;
             }
         }
     }
@@ -295,7 +346,7 @@ public partial class Inventory : Control
 
         foreach( InventoryTile tile in tiles )
 		{
-            tile.SelfModulate = new Color( 1, 1, 1 );
+            tile.Modulate = new Color( 1, 1, 1 );
 			if( tile.HasItem() )
 				tile.Item.Modulate = new Color( 1, 1, 1 );
         }
@@ -343,7 +394,7 @@ public partial class Inventory : Control
 	/// </summary>
 	/// <typeparam name="ItemType"> The type of item to add </typeparam>
 	/// <param name="tileIndex"> The index of the top left tile that the item should be placed at </param>
-	public bool TryAddItem<ItemType>( Vector2I tileIndex ) where ItemType : Item
+	public ItemType TryAddItem<ItemType>( Vector2I tileIndex ) where ItemType : Item
 	{
         Item item = (ItemType)Activator.CreateInstance( typeof( ItemType ) );
 		item.InventoryStyle = (InventoryStyle)Style;
@@ -362,7 +413,7 @@ public partial class Inventory : Control
 				else
 				{
 					GD.Print( Name, ": Failed to add item, tile already occupied" );
-					return false;
+					return null;
 				}
 			}
 		}
@@ -377,6 +428,16 @@ public partial class Inventory : Control
 
         GD.Print( Name, ": Added item (", item.GetType(),")" );
 
-        return true;
+        return (ItemType)item;
     }
+
+	public ItemType TryAddItem<ItemType>( Vector2I tileIndex, int amount ) where ItemType : StackableItem
+	{
+		StackableItem item = TryAddItem<ItemType>( tileIndex );
+
+		if( item != null )
+			item.SetAmount( amount );
+
+		return (ItemType)item;
+	}
 }

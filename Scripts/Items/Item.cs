@@ -34,7 +34,8 @@ public partial class Item : Control
             Border.Texture.Free();
 
     }
-	private void InitInternal()
+
+	protected virtual void InitInternal()
 	{
 		Icon = new TextureRect();
         Background = new TextureRect();
@@ -61,7 +62,7 @@ public partial class Item : Control
         Icon.Texture = (Texture2D)GD.Load( "res://icon.svg" ); ;
     }
 
-	public void SetTileSize( Vector2I size )
+	public virtual void SetTileSize( Vector2I size )
 	{
 		if( InventoryStyle == null )
 			GD.PrintErr( "Item: Inventory style has to be set before calling SetTileSize()" );
@@ -83,7 +84,7 @@ public partial class Item : Control
 	{
 	}
 
-	public void Rotate( Vector2 point )
+	public virtual void Rotate()
 	{
         Rotated = !Rotated;
 
@@ -93,8 +94,6 @@ public partial class Item : Control
         //Background.SetSize( ItemSize * InventoryStyle.TileSize );
         //Border.SetSize( ItemSize * InventoryStyle.TileSize );
 		//Icon.SetSize(ItemSize * InventoryStyle.TileSize );
-
-		point = GetClosestMiddlePosition( point );
 
 		float rotation = Rotated ? -90 : 0;
 
@@ -107,14 +106,6 @@ public partial class Item : Control
         Icon.Position = new Vector2( 0, yPos );
         Background.Position = new Vector2( 0, yPos );
         Border.Position = new Vector2( 0, yPos );
-
-        //PivotOffset = point - GlobalPosition;
-        GD.Print( point - GlobalPosition );
-		GD.Print( point );
-		GD.Print( GlobalPosition );
-	
-		
-		//RotationDegrees = Rotated ? -90 : 0;
 
 		GD.Print( "Get rotated pleb" );
     }

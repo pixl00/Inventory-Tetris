@@ -1,9 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://b4krohjudsjs6"]
+[gd_scene load_steps=6 format=3 uid="uid://b4krohjudsjs6"]
 
 [ext_resource type="Script" path="res://Scripts/InventoryManager.cs" id="1_ege4d"]
 [ext_resource type="PackedScene" uid="uid://ddvl8ifh1ftw7" path="res://Objects/Inventory.tscn" id="1_gx1wq"]
 [ext_resource type="Texture2D" uid="uid://dja8jswcdxsme" path="res://Resources/KenneyAssets/Drill.png" id="3_my302"]
 [ext_resource type="Texture2D" uid="uid://b1g5prf0yqpyq" path="res://Resources/KenneyAssets/PipeWrench.png" id="4_n1dgc"]
+
+[sub_resource type="Theme" id="Theme_2564d"]
+default_font_size = 12
 
 [node name="PlayerInventory" type="Control" node_paths=PackedStringArray("Inventories")]
 layout_mode = 3
@@ -46,14 +49,24 @@ GridSize = Vector2i(4, 6)
 
 [node name="TextureRect" type="TextureRect" parent="."]
 layout_mode = 0
-offset_left = -167.0
-offset_top = 51.0
-offset_right = -17.0
-offset_bottom = 151.0
-rotation = -1.5708
-pivot_offset = Vector2(125, 70)
+offset_left = -190.0
+offset_top = 85.0
+offset_right = -40.0
+offset_bottom = 185.0
 texture = ExtResource("3_my302")
 expand_mode = 1
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect"]
+clip_contents = false
+layout_mode = 0
+offset_left = 2.9
+offset_top = 71.78
+offset_right = 2.9
+offset_bottom = 86.78
+theme = SubResource("Theme_2564d")
+text = "200 000"
+scroll_active = false
+autowrap_mode = 0
 
 [node name="TextureRect2" type="TextureRect" parent="."]
 layout_mode = 0

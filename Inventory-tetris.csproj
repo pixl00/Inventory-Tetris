@@ -6,4 +6,8 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>Inventorytetris</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="script_templates\**" />
+    <EmbeddedResource Remove="script_templates\**" />
+  </ItemGroup>
 </Project>

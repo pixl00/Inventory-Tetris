@@ -58,7 +58,9 @@ public partial class InventoryManager : Control
             }
             if( click.ButtonIndex == MouseButton.Right && click.IsPressed() )
             {
-                TestTile( click.GlobalPosition );
+                //TestTile( click.GlobalPosition );
+                Inventory inv = GetHoveredInventory( click.GlobalPosition );
+                GD.Print( inv.CheckTile( inv.GetClosestTile( click.GlobalPosition ) ), HeldItem );
             }
         }
 
@@ -75,7 +77,7 @@ public partial class InventoryManager : Control
     {
         if( @event.IsActionPressed( "Rotate_Item" ) && HeldItem != null )
         {
-            HeldItem.Rotate( GetGlobalMousePosition() );
+            HeldItem.Rotate();
         }
     }
 
@@ -168,15 +170,47 @@ public partial class InventoryManager : Control
 		// Inventory at items bottom right position
         Inventory hoveredInventory2 = GetHoveredInventory( positions[positions.Count - 1] );
 
-        bool canPlace = hoveredInventory != null ? hoveredInventory.TestItemPlacement( HeldItem ) : false;
+        if( hoveredInventory == null || hoveredInventory2 == null || (hoveredInventory != hoveredInventory2) )
+        {
+            if( HeldItemRotation != HeldItem.Rotated )
+                HeldItem.Rotate();
+            HeldItemInventory.ReturnItem( HeldItem );
+            GD.Print( "Held item returned to old inventory" );
+            HeldItem = null;
+            HeldItemInventory = null;
+            return;
+        }
 
-        if( !canPlace || hoveredInventory == null || hoveredInventory2 == null || (hoveredInventory != hoveredInventory2) )
+        bool canPlace = hoveredInventory.TestItemPlacement( HeldItem );
+        
+        InventoryTile hoveredTile = hoveredInventory.GetClosestTile( HeldItem.GetTopLeftMiddlePos() );
+
+        bool stack = HeldItem is StackableItem && hoveredTile.Item is StackableItem && HeldItem != hoveredTile.Item;
+
+        if( !canPlace )
 		{
             if( HeldItemRotation != HeldItem.Rotated ) 
-                HeldItem.Rotate( GetGlobalMousePosition() );
+                HeldItem.Rotate();
 			HeldItemInventory.ReturnItem( HeldItem );
 			GD.Print( "Held item returned to old inventory" );
 		}
+        else if( canPlace && stack )
+        {
+            int remainder = hoveredInventory.StackItem( (StackableItem)HeldItem );
+            if( remainder > 0 )
+            {
+                GD.Print( remainder );
+                ((StackableItem)HeldItem).SetAmount( remainder );
+                HeldItemInventory.ReturnItem( HeldItem );
+            }
+            else
+            {
+                GD.Print( remainder );
+                HeldItemInventory.RemoveItem( HeldItem );
+                HeldItem.QueueFree();
+            }
+
+        }
         else if( canPlace )
         {
             HeldItemInventory.RemoveItem( HeldItem );
