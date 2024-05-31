@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 [Tool]
 public partial class Inventory : Control
@@ -11,15 +12,13 @@ public partial class Inventory : Control
 
 	private Vector2I _gridSize;
     [Export]
-	Vector2I GridSize {
+	public Vector2I GridSize {
 		get { return _gridSize; } 
-		set { _gridSize = value.Clamp( Vector2I.One, Vector2I.MaxValue ); }
+		set { 
+		_gridSize = value.Clamp( Vector2I.One, Vector2I.MaxValue );
+		ResizeGrid();
+		}
     }
-
-    /// <summary>
-    /// The tile of the item that we are currently holding with the mouse
-    /// </summary>
-    //InventoryTile HeldTile { get; set; } = null;
 
     [Export]
     private bool ManualUpdateGrid { get; set; } = true;
@@ -32,53 +31,36 @@ public partial class Inventory : Control
     [Export]
     TextureRect Background { get; set; }
 
+	private Inventory(){}
+
+	public Inventory( Vector2I gridSize )
+    {
+        GridSize = gridSize;
+    }
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
 	{
 		Debug.Assert( Style != null, "Inventory: Style is null" );
+		
+		Grid = GetNode<GridContainer>( "Grid" );
+		Background = GetNode<TextureRect>( "Background" );
 
 		Background.Texture = ((InventoryStyle)Style).Background;
 
         ResizeGrid();
-        RepositionGrid();
 
-        if( !Engine.IsEditorHint() )
-			CallDeferred( "DeferredReady" );
-    }
-
-	/// <summary>
-	/// Called from _Ready() with CallDeferred() <br/>
-	/// Mostly used for adding items which needs the inventory tilesToOccupy positions
-	/// </summary>
-	public void DeferredReady()
-	{
-		InventoryTile tile = GetTile( 0, 0 );
-		if( tile == null ) {
-			GD.PrintErr( "Tile null" );
-		}
-
-        TryAddItem<PipeWrench>( new Vector2I(0, 0) );
-        TryAddItem<Money>( new Vector2I(0, 2), 150_000 );
-        TryAddItem<Money>( new Vector2I(3, 0), 10_000 );
-        TryAddItem<Computer>( new Vector2I(1, 0) );
-        TryAddItem<Drill>( new Vector2I(0, 3) );
+        //if( !Engine.IsEditorHint() )
+		//	CallDeferred( "DeferredReady" );
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta)
 	{
-		if( Engine.IsEditorHint() )
+		if( ManualUpdateGrid && Grid != null && Engine.IsEditorHint() )
 		{
-			if( Background != null )
-            Background.Texture = ((InventoryStyle)Style).Background;
-
-            Array<Node> tiles = Grid.GetChildren();
-            if( tiles.Count != GridSize.X * GridSize.Y || ((InventoryTile)tiles[0]).Size.X != ((InventoryStyle)Style).TileSize || ManualUpdateGrid )
-			{
-				ResizeGrid();
-				RepositionGrid();
-				ManualUpdateGrid = false;
-			}
+			ResizeGrid();
+			ManualUpdateGrid = false;
         }
 	}
 
@@ -130,6 +112,9 @@ public partial class Inventory : Control
 
     private void ResizeGrid()
 	{
+		if( Grid == null )
+			return;
+
 		GD.Print( "Resize grid ", ((InventoryStyle)Style).TileSize );
 		
 		Array<Node> tiles = Grid.GetChildren();
@@ -170,11 +155,8 @@ public partial class Inventory : Control
 			style.TileSize * GridSize.Y + style.GridPadding * 2 );
 
         Size = NewSize;
-    }
 
-	public void RepositionGrid()
-	{
-		Grid.Position = Vector2.One * ((InventoryStyle)Style).GridPadding;
+        Grid.Position = Vector2.One * ((InventoryStyle)Style).GridPadding;
     }
 
 	public bool IsInside( Vector2 pos )
@@ -240,11 +222,9 @@ public partial class Inventory : Control
             InventoryTile tile = GetClosestTile( position );
             if( !CheckTile( tile, item ) )
 			{
-				GD.Print( "Item can not be placed here" );
                 return false;
 			}
         }
-        GD.Print( "Item can be placed here" );
         return true;
     }
 
@@ -264,80 +244,60 @@ public partial class Inventory : Control
             return false;
         }
 
-        if( tile.HasItem() )
-        {
-			if( item != null ) 
-			{
-				if( (tile.Item == item) )
-				{
-                    GD.Print( "item is tile item" );
-                    return true;
-				}
-				if( (item is StackableItem) )
-				{
-					if( tile.Item is StackableItem )
-					{
-						if( item.GetType() == tile.Item.GetType() )
-						{
-							return true;
-						}
-						else
-						{
-                            GD.Print( "item and tile are not the same type" );
-                            return false;
-                        }
-					}
-					else
-					{
-                        GD.Print( "tile is not stackable" );
-						return false;
-                    }
-				}
-				else
-				{
-					GD.Print( "item is not stackable" );
-					return false;
-				}
-            }
-			else
-			{
-                GD.Print( "item can be placed" );
-                return false;
-			}
-        }
-		else
-		{
-            GD.Print( "item can be placed" );
-            return true;
-		}
+		if( !tile.HasItem() )
+			return true;
+
+		// No need to check if item and tile item can combind
+		if( item == null ) 
+			return false;
+
+		// (item is tile item) or (item and tile item are stackable and same type)
+		if( (tile.Item == item) || ( item is StackableItem && tile.Item is StackableItem && (item.GetType() == tile.Item.GetType()) ) )
+			return true;
+		
+		return false;
     }
 
     public void DisplayItemPlacement( Item item )
 	{
         Array<Vector2> positions = item.GetMiddlePositions();
 
+        Color red = new Color( 1, 0, 0 );
+        Color green = new Color( 0, 1, 0 );
+
+        bool itemCanPlace = true;
+
         // Check the tiles that the item should occupy
         foreach( var position in positions )
         {
             InventoryTile tile = GetClosestTile( position );
             if( tile == null )
+			{
+				itemCanPlace = false;
 				continue;
+			}
 
 			if( CheckTile( tile, item ) )
 			{
-                Color green = new Color( 0, 1, 0, 0.5f );
-				tile.Modulate = green;
-				//tile.Item.Modulate = green;
-                item.Modulate = green;
+				if( tile.HasItem())
+					tile.Item.Modulate = green;
+
+                tile.SelfModulate = green;
             }
 			else
 			{
-				Color red = new Color( 1, 0, 0, 0.5f );
-				tile.Modulate = red;
-                tile.Item.Modulate = red;
-                item.Modulate = red;
+                if( tile.HasItem() )
+                    tile.Item.Modulate = red;
+
+				tile.SelfModulate = red;
+
+				itemCanPlace = false;
             }
         }
+		if( itemCanPlace )
+			item.Modulate = green;
+		else
+			item.Modulate = red;
     }
 
     public void ClearDisplayItemPlacement()
@@ -346,7 +306,7 @@ public partial class Inventory : Control
 
         foreach( InventoryTile tile in tiles )
 		{
-            tile.Modulate = new Color( 1, 1, 1 );
+            tile.SelfModulate = new Color( 1, 1, 1 );
 			if( tile.HasItem() )
 				tile.Item.Modulate = new Color( 1, 1, 1 );
         }

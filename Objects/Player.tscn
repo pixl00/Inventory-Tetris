@@ -1,5 +1,12 @@
-[gd_scene format=3 uid="uid://so5gld2svmqg"]
+[gd_scene load_steps=3 format=3 uid="uid://so5gld2svmqg"]
 
-[node name="Player" type="Node3D"]
+[ext_resource type="PackedScene" uid="uid://b4krohjudsjs6" path="res://Objects/PlayerInventory.tscn" id="1_afao2"]
+[ext_resource type="Script" path="res://Scripts/Player.cs" id="1_w0iij"]
+
+[node name="Player" type="Node3D" node_paths=PackedStringArray("InventoryManager")]
+script = ExtResource("1_w0iij")
+InventoryManager = NodePath("PlayerInventory")
 
 [node name="Camera3D" type="Camera3D" parent="."]
+
+[node name="PlayerInventory" parent="." instance=ExtResource("1_afao2")]

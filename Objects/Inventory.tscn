@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://nicqdppddvrb" path="res://Resources/DarkBlueGradiant.tres" id="2_r7p2t"]
 [ext_resource type="Script" path="res://Scripts/InventoryTile.cs" id="3_cjphq"]
 
-[node name="Inventory" type="Control" node_paths=PackedStringArray("Grid", "Background")]
+[node name="Inventory" type="Control"]
 z_as_relative = false
 layout_mode = 3
 anchors_preset = 0
@@ -14,9 +14,6 @@ offset_bottom = 410.0
 mouse_filter = 2
 script = ExtResource("1_0040e")
 GridSize = Vector2i(8, 8)
-ManualUpdateGrid = false
-Grid = NodePath("Grid")
-Background = NodePath("Background")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1

@@ -1,10 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://cpy2rjsrmonl2"]
+[gd_scene load_steps=2 format=3 uid="uid://cpy2rjsrmonl2"]
 
 [ext_resource type="PackedScene" uid="uid://so5gld2svmqg" path="res://Objects/Player.tscn" id="1_65q26"]
-[ext_resource type="PackedScene" uid="uid://b4krohjudsjs6" path="res://Objects/PlayerInventory.tscn" id="2_reob7"]
 
 [node name="Node3D" type="Node3D"]
 
 [node name="Player" parent="." instance=ExtResource("1_65q26")]
-
-[node name="PlayerInventory" parent="Player" instance=ExtResource("2_reob7")]
